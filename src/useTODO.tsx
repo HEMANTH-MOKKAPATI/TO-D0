@@ -1,68 +1,75 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
+// Define the shape of a task
 export interface TaskInterface {
-	id: number;
+	id: number; // Change id type to string for UUID
 	text: string;
 }
 
-export interface propInterface {
-	deleteTask: (index: number) => void;
-	moveUp: (index: number) => void;
-	moveDown: (index: number) => void;
-	AddTask: () => void;
-	list: TaskInterface[];
-	setList: (list: TaskInterface[]) => void;
-	newTask: string;
-	setNewTask: (newTask: string) => void;
-}
+// Custom hook for handling To-Do List logic
+export const useTODO = () => {
+	const [list, setList] = useState<TaskInterface[]>(() => {
+		// Load tasks from localStorage
+		const savedTasks = localStorage.getItem("tasks");
+		return savedTasks ? JSON.parse(savedTasks) : []; // Parse and return tasks or return an empty array
+	});
+	const [newTask, setNewTask] = useState<string>(""); // New task input state
 
-export const useTODO = (): propInterface => {
-	const [newTask, setNewTask] = useState<string>("");
-	const [list, setList] = useState<TaskInterface[]>([]);
+	// Effect to save tasks to localStorage whenever the list changes
+	useEffect(() => {
+		localStorage.setItem("tasks", JSON.stringify(list));
+	}, [list]);
 
-	const AddTask = (): void => {
-		if (!newTask.trim()) return;
-
-		const task: TaskInterface = {
-			// id: list.length === 0 ? 1 : list[list.length - 1].id + 1,
-			id: Date.now(),
+	// Function to add a task
+	const AddTask = () => {
+		if (newTask.trim() === "") return; // Avoid adding empty tasks
+		const newTaskItem: TaskInterface = {
+			id: Date.now(), // Use UUID for unique ID
 			text: newTask,
+			// completed: false, // Default to incomplete
 		};
-
-		setList([...list, task]);
-		setNewTask("");
+		setList((prevList) => [...prevList, newTaskItem]); // Use functional update
+		setNewTask(""); // Clear input after adding
 	};
 
-	const deleteTask = (id: number): void => {
-		setList(list.filter((task) => task.id !== id));
+	// Function to delete a task by ID
+	const deleteTask = (id: number) => {
+		setList((prevList) => prevList.filter((task) => task.id !== id)); // Use functional update
 	};
 
-	const moveUp = (i: number): void => {
-		if (i > 0) {
-			const u = [...list];
-
-			[u[i], u[i - 1]] = [u[i - 1], u[i]];
-			setList(u);
-		}
+	// Function to move task up the list
+	const moveUp = (index: number) => {
+		if (index === 0) return; // Do nothing if the task is already at the top
+		setList((prevList) => {
+			const newList = [...prevList];
+			[newList[index - 1], newList[index]] = [
+				newList[index],
+				newList[index - 1],
+			]; // Swap elements
+			return newList;
+		});
 	};
 
-	const moveDown = (i: number): void => {
-		if (i < list.length - 1) {
-			const u = [...list];
-
-			[u[i], u[i + 1]] = [u[i + 1], u[i]];
-			setList(u);
-		}
+	// Function to move task down the list
+	const moveDown = (index: number) => {
+		if (index === list.length - 1) return; // Do nothing if the task is already at the bottom
+		setList((prevList) => {
+			const newList = [...prevList];
+			[newList[index], newList[index + 1]] = [
+				newList[index + 1],
+				newList[index],
+			]; // Swap elements
+			return newList;
+		});
 	};
 
 	return {
 		list,
-		deleteTask,
-		moveUp,
-		moveDown,
-		AddTask,
-		setList,
-		setNewTask,
 		newTask,
+		deleteTask,
+		moveDown,
+		moveUp,
+		AddTask,
+		setNewTask,
 	};
 };

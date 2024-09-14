@@ -14,9 +14,7 @@ export default function ToDo() {
 				id="input"
 				placeholder="Enter A Task ...."
 				value={newTask}
-				onChange={(e: { target: { value: string } }) =>
-					setNewTask(e.target.value)
-				}
+				onChange={(e) => setNewTask(e.target.value)}
 			/>
 
 			<AddButton onClick={AddTask} disabled={!newTask.trim()}>
@@ -26,7 +24,9 @@ export default function ToDo() {
 			<TaskList>
 				{list?.map((item: TaskInterface, index: number) => (
 					<TaskItem key={item.id}>
-						<TaskText completed={item}>{item.text}</TaskText>
+						<TaskText>
+							{item.text} {item.id}
+						</TaskText>
 
 						<ButtonContainer>
 							<ActionButton onClick={() => deleteTask(item.id)}>
@@ -36,7 +36,9 @@ export default function ToDo() {
 								<ActionButton onClick={() => moveUp(index)}>☝</ActionButton>
 							)}
 							{index < list.length - 1 && (
-								<ActionButton onClick={() => moveDown(index)}>👇</ActionButton>
+								<ActionButton onClick={() => moveDown(index)}>
+									DOWN
+								</ActionButton>
 							)}
 						</ButtonContainer>
 					</TaskItem>
@@ -122,8 +124,8 @@ const TaskItem = styled.li`
 const TaskText = styled.span<{ completed?: boolean }>`
   flex: 1;
   text-align: left;
-  //text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
-  //color: ${(props) => (props.completed ? "#888" : "#000")};
+  text-decoration: ${(props) => (props.completed ? "line-through" : "none")};
+  color: ${(props) => (props.completed ? "#888" : "#000")};
 `;
 
 // Button container to hold the action buttons
